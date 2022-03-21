@@ -10,11 +10,10 @@
 template <class T>
 class Dynamic_array
 {
-private:
     size_t m_array_size = 0;
     std::unique_ptr<T[]> m_data_array;
 
-    inline void check_index(size_t index) const
+    void check_index(size_t index) const
     {
         if (index >= m_array_size) {
             throw std::out_of_range("Out of range. Size of the dynamic array is equal to " + std::to_string(m_array_size));
@@ -31,22 +30,19 @@ public:
     {}
 
     Dynamic_array(size_t size, const T& value) :
-        m_array_size{ size },
-        m_data_array{ new T[m_array_size] }
+        Dynamic_array(size)
     {
         std::fill(begin(), end(), value);
     }
 
     Dynamic_array(size_t size, T&& value) :
-        m_array_size{ size },
-        m_data_array{ new T[m_array_size] }
+        Dynamic_array(size)
     {
         std::fill(begin(), end(), value);
     }
 
     Dynamic_array(const Dynamic_array& other) :
-        m_array_size{ other.m_array_size },
-        m_data_array{ new T[m_array_size] }
+        Dynamic_array(other.m_array_size)
     {
         std::copy(other.cbegin(), other.cend(), begin());
     }
@@ -59,8 +55,7 @@ public:
     }
     //
     Dynamic_array(std::initializer_list<T> init_list) :
-        m_array_size{ init_list.size() },
-        m_data_array{ new T[m_array_size] }
+        Dynamic_array(init_list.size())
     {
         std::copy(init_list.begin(), init_list.end(), begin());
     }
@@ -140,7 +135,7 @@ public:
 
     //Iterators
     class Iterator {
-        T* m_it;
+        T* m_ptr;
     public:
         using difference_type = std::ptrdiff_t;
         using value_type = T;
@@ -148,88 +143,89 @@ public:
         using reference = T&;
         using iterator_category = std::bidirectional_iterator_tag;
 
-        Iterator(T* iter) : m_it{ iter }
+        Iterator(T* iter) : m_ptr{ iter }
         {}
 
-        bool operator!=(const Iterator& other)
+        bool operator!=(const Iterator& other) const
         {
-            return m_it != other.m_it;
+            return m_ptr != other.m_ptr;
         }
 
-        bool operator==(const Iterator& other)
+        bool operator==(const Iterator& other) const
         {
-            return m_it == other.m_it;
+            return m_ptr == other.m_ptr;
         }
 
         Iterator& operator++()
         {
-            m_it++;
+            m_ptr++;
             return *this;
         }
 
         Iterator operator++(int)
         {
-            Iterator result{ m_it++ };
-            return result;
+            return m_ptr++;
         }
 
-        Iterator& operator+(int number)
+        Iterator operator+(int number) const
         {
-            m_it += number;
-            return *this;
-        }
-
-        Iterator& operator+=(int number)
-        {
-            m_it += number;
-            return *this;
+            return m_ptr + number;
         }
 
         Iterator& operator--()
         {
-            m_it--;
+            m_ptr--;
             return *this;
         }
 
         Iterator operator--(int) {
-            Iterator result{ m_it-- };
-            return result;
+            return m_ptr--;
         }
 
-        Iterator& operator-(int number)
+        Iterator operator-(int number) const
         {
-            m_it -= number;
+            return m_ptr - number;
+        }
+
+        Iterator& operator+=(int number)
+        {
+            m_ptr += number;
             return *this;
         }
 
         Iterator& operator-=(int number)
         {
-            m_it -= number;
+            m_ptr -= number;
             return *this;
         }
 
-        bool operator>(const Iterator& other)
+        bool operator>(const Iterator& other) const
         {
-            return (m_it) > (other.m_it);
+            return m_ptr > other.m_ptr;
         }
 
-        bool operator<(const Iterator& other)
+        bool operator<(const Iterator& other) const
         {
-            return (m_it) < (other.m_it);
+            return m_ptr < other.m_ptr;
         }
 
         T& operator*()
         {
-            return *m_it;
+            return *m_ptr;
         }
-        T* operator->()
+
+        const T& operator*() const
         {
-            return m_it;
+            return *m_ptr;
         }
+        // T* operator->()
+        // {
+        //     return m_ptr;
+        // }
     };
 
     class Const_iterator {
-        const T* m_it;
+        const T* m_ptr;
     public:
         using difference_type = std::ptrdiff_t;
         using value_type = const T;
@@ -237,84 +233,84 @@ public:
         using reference = const T&;
         using iterator_category = std::bidirectional_iterator_tag;
 
-        Const_iterator(const T* iter) : m_it{ iter }
+        Const_iterator(const T* iter) : m_ptr{ iter }
         {}
 
-        bool operator!=(const Const_iterator& other)
+        Const_iterator(const Iterator& iter) :
+            m_ptr{ &(*iter) }
+        {}
+
+        bool operator!=(const Const_iterator& other) const
         {
-            return m_it != other.m_it;
+            return m_ptr != other.m_ptr;
         }
 
-        bool operator==(const Const_iterator& other)
+        bool operator==(const Const_iterator& other) const
         {
-            return m_it == other.m_it;
+            return m_ptr == other.m_ptr;
         }
 
         Const_iterator& operator++()
         {
-            m_it++;
+            m_ptr++;
             return *this;
         }
 
         Const_iterator operator++(int)
         {
-            Iterator result{ m_it++ };
-            return result;
+            return m_ptr++;
         }
 
-        Const_iterator& operator+(int number)
+        Const_iterator operator+(int number) const
         {
-            m_it += number;
-            return *this;
+            return m_ptr + number;
         }
 
         Const_iterator& operator+=(int number)
         {
-            m_it += number;
+            m_ptr += number;
             return *this;
         }
 
         Const_iterator& operator--()
         {
-            m_it--;
+            m_ptr--;
             return *this;
         }
 
         Const_iterator operator--(int) {
-            Iterator result{ m_it-- };
-            return result;
+            return m_ptr--;
         }
 
-        Const_iterator& operator-(int number)
+        Const_iterator operator-(int number) const
         {
-            m_it -= number;
-            return *this;
+            return m_ptr - number;
         }
 
         Const_iterator& operator-=(int number)
         {
-            m_it -= number;
+            m_ptr -= number;
             return *this;
         }
 
-        bool operator>(const Const_iterator& other)
+        bool operator>(const Const_iterator& other) const
         {
-            return (m_it) > (other.m_it);
+            return m_ptr > other.m_ptr;
         }
 
-        bool operator<(const Const_iterator& other)
+        bool operator<(const Const_iterator& other) const
         {
-            return (m_it) < (other.m_it);
+            return m_ptr < other.m_ptr;
         }
 
-        const T& operator*()
+        const T& operator*() const
         {
-            return *m_it;
+            return *m_ptr;
         }
-        const T* operator->()
-        {
-            return m_it;
-        }
+        // const T* operator->()
+        // {
+        //     return m_ptr;
+        // }
     };
 
     Dynamic_array<T>::Iterator begin()
@@ -337,6 +333,193 @@ public:
         return Const_iterator(m_data_array.get() + m_array_size);
     }
 
-    //TODO REVERSE ITERATOR - with Iterator inside
+    class Reverse_iterator {
+        Iterator m_forward_iterator;
+    public:
+        Reverse_iterator(Iterator it) :
+            m_forward_iterator(it)
+        {}
+
+        bool operator!=(const Reverse_iterator& other) const
+        {
+            return m_forward_iterator != other.m_forward_iterator;
+        }
+
+        bool operator==(const Reverse_iterator& other) const
+        {
+            return m_forward_iterator == other.m_forward_iterator;
+        }
+
+        Reverse_iterator& operator++()
+        {
+            --m_forward_iterator;
+            return *this;
+        }
+
+        Reverse_iterator operator++(int)
+        {
+            return m_forward_iterator--;
+        }
+
+        Reverse_iterator operator+(int number) const
+        {
+            return m_forward_iterator - number;
+        }
+
+        Reverse_iterator& operator+=(int number)
+        {
+            m_forward_iterator -= number;
+            return *this;
+        }
+
+        Reverse_iterator& operator--()
+        {
+            m_forward_iterator++;
+            return *this;
+        }
+
+        Reverse_iterator operator--(int) {
+            return m_forward_iterator++;
+        }
+
+        Reverse_iterator operator-(int number) const
+        {
+            return m_forward_iterator + number;
+        }
+
+        Reverse_iterator& operator-=(int number)
+        {
+            m_forward_iterator += number;
+            return *this;
+        }
+
+        bool operator>(const Reverse_iterator& other) const
+        {
+            return m_forward_iterator > other.m_forward_iterator;
+        }
+
+        bool operator<(const Reverse_iterator& other) const
+        {
+            return m_forward_iterator < other.m_forward_iterator;
+        }
+
+        T& operator*()
+        {
+            return *m_forward_iterator;
+        }
+
+        const T& operator*() const
+        {
+            return *m_forward_iterator;
+        }
+
+        // T* operator->()
+        // {
+        //     return m_forward_iterator.operator->();
+        // }
+    };
+
+    class Const_reverse_iterator {
+        Const_iterator m_forward_iterator;
+    public:
+        Const_reverse_iterator(Const_iterator it) :
+            m_forward_iterator(it)
+        {}
+
+        Const_reverse_iterator(Reverse_iterator it) :
+            m_forward_iterator{ &(*it) }
+        {}
+
+        bool operator!=(const Const_reverse_iterator& other) const
+        {
+            return m_forward_iterator != other.m_forward_iterator;
+        }
+
+        bool operator==(const Const_reverse_iterator& other) const
+        {
+            return m_forward_iterator == other.m_forward_iterator;
+        }
+
+        Const_reverse_iterator& operator++()
+        {
+            --m_forward_iterator;
+            return *this;
+        }
+
+        Const_reverse_iterator operator++(int)
+        {
+            return m_forward_iterator--;
+        }
+
+        Const_reverse_iterator operator+(int number) const
+        {
+            return m_forward_iterator - number;
+        }
+
+        Const_reverse_iterator& operator+=(int number)
+        {
+            m_forward_iterator -= number;
+            return *this;
+        }
+
+        Const_reverse_iterator& operator--()
+        {
+            ++m_forward_iterator;
+            return *this;
+        }
+
+        Const_reverse_iterator operator--(int) {
+            return m_forward_iterator++;
+        }
+
+        Const_reverse_iterator operator-(int number) const
+        {
+            return m_forward_iterator + number;
+        }
+
+        Const_reverse_iterator& operator-=(int number)
+        {
+            m_forward_iterator += number;
+            return *this;
+        }
+
+        bool operator>(const Const_reverse_iterator& other) const
+        {
+            return m_forward_iterator > other.m_forward_iterator;
+        }
+
+        bool operator<(const Const_reverse_iterator& other) const
+        {
+            return m_forward_iterator < other.m_forward_iterator;
+        }
+
+        const T& operator*() const
+        {
+            return *m_forward_iterator;
+        }
+
+        // T* operator->()
+        // {
+        //     return m_forward_iterator.operator->();
+        // }
+    };
+
+    Dynamic_array<T>::Reverse_iterator rbegin() {
+        return Reverse_iterator(end() - 1);
+    }
+
+    Dynamic_array<T>::Reverse_iterator rend() {
+        return Reverse_iterator(begin() - 1);
+    }
+
+    Dynamic_array<T>::Const_reverse_iterator crbegin() const
+    {
+        return Const_reverse_iterator(cend() - 1);
+    }
+
+    Dynamic_array<T>::Const_reverse_iterator crend() const
+    {
+        return Const_reverse_iterator(cbegin() - 1);
+    }
 };
 
