@@ -128,9 +128,17 @@ public:
         std::cout << std::endl;
     };
 
-    // std::string to_string() const {
-
-    // };
+    std::string to_string(std::string separator = ", ") const {
+        std::stringstream str;
+        str << '[';
+        size_t last_element_index = m_array_size - 1;
+        for (size_t i = 0; i < last_element_index; i++) {
+            str << m_data_array[i];
+            str << separator;
+        }
+        str << m_data_array[last_element_index] << ']';
+        return str.str();
+    };
 
 
     //Iterators
